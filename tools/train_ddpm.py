@@ -9,10 +9,10 @@ from dataset.mnist_dataset import MnistDataset
 from torch.utils.data import DataLoader
 from models.unet_base import Unet
 from scheduler.linear_noise_scheduler import LinearNoiseScheduler
+from data_loader.data_loader import DatasetLoader as DataL
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-
+print(device)
 def train(args):
     # Read the config file #
     with open(args.config_path, 'r') as file:
@@ -34,9 +34,10 @@ def train(args):
                                      beta_end=diffusion_config['beta_end'])
     
     # Create the dataset
-    mnist = MnistDataset('train', im_path=dataset_config['im_path'])
-    mnist_loader = DataLoader(mnist, batch_size=train_config['batch_size'], shuffle=True, num_workers=4)
+    data_loader = DataL(dataset_name="cifar10", batch_size=train_config['batch_size'])
+    train_loader = data_loader.get_dataloader(train=True)
     
+    print(train_loader)
     # Instantiate the model
     model = Unet(model_config).to(device)
     model.train()
@@ -58,9 +59,11 @@ def train(args):
     # Run training
     for epoch_idx in range(num_epochs):
         losses = []
-        for im in tqdm(mnist_loader):
+        for im, labels in tqdm(train_loader):
             optimizer.zero_grad()
             im = im.float().to(device)
+            print("Tensor shape:", im.shape)  # Print the shape of the tensor
+            
             
             # Sample random noise
             noise = torch.randn_like(im).to(device)
@@ -85,6 +88,8 @@ def train(args):
     
     print('Done Training ...')
     
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Arguments for ddpm training')

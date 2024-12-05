@@ -7,8 +7,8 @@ diffusion_params:
   beta_end : 0.02
 
 model_params:
-  im_channels : 1
-  im_size : 28
+  im_channels : 3
+  im_size : 32
   down_channels : [32, 64, 128, 256]
   mid_channels : [256, 256, 128]
   down_sample : [True, True, False]
@@ -20,9 +20,9 @@ model_params:
 
 train_params:
   task_name: 'default_fid'
-  batch_size: 64
-  num_epochs: 20
+  batch_size: 128
+  num_epochs: 30
   num_samples : 100
   num_grid_rows : 10
-  lr: 0.0001
-  ckpt_name: 'ddpm_ckpt.pth'
+  lr: 0.0002
+  ckpt_name: 'ddpm_ckpt_cifar3.pth'

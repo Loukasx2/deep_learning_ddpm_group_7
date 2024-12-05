@@ -42,6 +42,7 @@ class DownBlock(nn.Module):
                 nn.Sequential(
                     nn.GroupNorm(8, in_channels if i == 0 else out_channels),
                     nn.SiLU(),
+                    nn.Dropout(p=0.1),
                     nn.Conv2d(in_channels if i == 0 else out_channels, out_channels,
                               kernel_size=3, stride=1, padding=1),
                 )
@@ -60,6 +61,7 @@ class DownBlock(nn.Module):
                 nn.Sequential(
                     nn.GroupNorm(8, out_channels),
                     nn.SiLU(),
+                    nn.Dropout(p=0.1),
                     nn.Conv2d(out_channels, out_channels,
                               kernel_size=3, stride=1, padding=1),
                 )
@@ -124,6 +126,7 @@ class MidBlock(nn.Module):
                 nn.Sequential(
                     nn.GroupNorm(8, in_channels if i == 0 else out_channels),
                     nn.SiLU(),
+                    nn.Dropout(p=0.1),
                     nn.Conv2d(in_channels if i == 0 else out_channels, out_channels, kernel_size=3, stride=1,
                               padding=1),
                 )
@@ -142,6 +145,7 @@ class MidBlock(nn.Module):
                 nn.Sequential(
                     nn.GroupNorm(8, out_channels),
                     nn.SiLU(),
+                    nn.Dropout(p=0.1),
                     nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
                 )
                 for _ in range(num_layers+1)
@@ -213,6 +217,7 @@ class UpBlock(nn.Module):
                 nn.Sequential(
                     nn.GroupNorm(8, in_channels if i == 0 else out_channels),
                     nn.SiLU(),
+                    nn.Dropout(p=0.1),
                     nn.Conv2d(in_channels if i == 0 else out_channels, out_channels, kernel_size=3, stride=1,
                               padding=1),
                 )
@@ -231,6 +236,7 @@ class UpBlock(nn.Module):
                 nn.Sequential(
                     nn.GroupNorm(8, out_channels),
                     nn.SiLU(),
+                    nn.Dropout(p=0.1),
                     nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
                 )
                 for _ in range(num_layers)
