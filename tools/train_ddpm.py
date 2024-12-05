@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 from models.unet_base import Unet
 from scheduler.linear_noise_scheduler import LinearNoiseScheduler
 from data_loader.data_loader import DatasetLoader as DataL
+from torchvision import transforms
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
@@ -57,6 +58,12 @@ def train(args):
     criterion = torch.nn.MSELoss()
     
     # Run training
+    # Define the transformation
+    transform = transforms.Compose([
+        transforms.RandomHorizontalFlip(p=0.5)  # Randomly flip the image
+    ])
+
+    # Training loop
     for epoch_idx in range(num_epochs):
         losses = []
         for im, labels in tqdm(train_loader):
@@ -64,6 +71,8 @@ def train(args):
             im = im.float().to(device)
             print("Tensor shape:", im.shape)  # Print the shape of the tensor
             
+            # Apply the transform
+            im = transform(im).to(device)
             
             # Sample random noise
             noise = torch.randn_like(im).to(device)
