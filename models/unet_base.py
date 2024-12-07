@@ -89,26 +89,27 @@ class DownBlock(nn.Module):
     def forward(self, x, t_emb):
         out = x
         for i in range(self.num_layers):
-            
-            # Resnet block of Unet
+            # ResNet block
             resnet_input = out
             out = self.resnet_conv_first[i](out)
             out = out + self.t_emb_layers[i](t_emb)[:, :, None, None]
             out = self.resnet_conv_second[i](out)
             out = out + self.residual_input_conv[i](resnet_input)
             
-            # Attention block of Unet
+            # Check if resolution is 16x16 for the attention block
             batch_size, channels, h, w = out.shape
             if h == 16 and w == 16:
+                # Attention block
                 in_attn = out.reshape(batch_size, channels, h * w)
                 in_attn = self.attention_norms[i](in_attn)
                 in_attn = in_attn.transpose(1, 2)
                 out_attn, _ = self.attentions[i](in_attn, in_attn, in_attn)
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
                 out = out + out_attn
-            
+        
         out = self.down_sample_conv(out)
         return out
+
 
 class MidBlock(nn.Module):
     r"""
@@ -170,34 +171,35 @@ class MidBlock(nn.Module):
     
     def forward(self, x, t_emb):
         out = x
-        
-        # First resnet block
+
+        # First ResNet block
         resnet_input = out
         out = self.resnet_conv_first[0](out)
         out = out + self.t_emb_layers[0](t_emb)[:, :, None, None]
         out = self.resnet_conv_second[0](out)
         out = out + self.residual_input_conv[0](resnet_input)
-        
+
         for i in range(self.num_layers):
-            
-            # Attention Block
+            # Check if resolution is 16x16 for the attention block
             batch_size, channels, h, w = out.shape
             if h == 16 and w == 16:
+                # Attention block
                 in_attn = out.reshape(batch_size, channels, h * w)
                 in_attn = self.attention_norms[i](in_attn)
                 in_attn = in_attn.transpose(1, 2)
                 out_attn, _ = self.attentions[i](in_attn, in_attn, in_attn)
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
                 out = out + out_attn
-            
-            # Resnet Block
+
+            # ResNet block
             resnet_input = out
-            out = self.resnet_conv_first[i+1](out)
-            out = out + self.t_emb_layers[i+1](t_emb)[:, :, None, None]
-            out = self.resnet_conv_second[i+1](out)
-            out = out + self.residual_input_conv[i+1](resnet_input)
+            out = self.resnet_conv_first[i + 1](out)
+            out = out + self.t_emb_layers[i + 1](t_emb)[:, :, None, None]
+            out = self.resnet_conv_second[i + 1](out)
+            out = out + self.residual_input_conv[i + 1](resnet_input)
         
         return out
+
 
 
 class UpBlock(nn.Module):
@@ -267,20 +269,25 @@ class UpBlock(nn.Module):
                                                  4, 2, 1) \
             if self.up_sample else nn.Identity()
     
-    def forward(self, x, out_down, t_emb):
-        x = self.up_sample_conv(x)
-        x = torch.cat([x, out_down], dim=1)
-        
+    def forward(self, x, skip, t_emb):
         out = x
+        if self.up_sample:
+            out = nn.functional.interpolate(out, scale_factor=2, mode='nearest')
+        
+        out = torch.cat([out, skip], dim=1)
+
         for i in range(self.num_layers):
+            # ResNet block
             resnet_input = out
             out = self.resnet_conv_first[i](out)
             out = out + self.t_emb_layers[i](t_emb)[:, :, None, None]
             out = self.resnet_conv_second[i](out)
             out = out + self.residual_input_conv[i](resnet_input)
-            
+
+            # Check if resolution is 16x16 for the attention block
             batch_size, channels, h, w = out.shape
             if h == 16 and w == 16:
+                # Attention block
                 in_attn = out.reshape(batch_size, channels, h * w)
                 in_attn = self.attention_norms[i](in_attn)
                 in_attn = in_attn.transpose(1, 2)
@@ -288,8 +295,8 @@ class UpBlock(nn.Module):
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
                 out = out + out_attn
         
-        out = self.up_sample_conv(out)
         return out
+
 
 
 class Unet(nn.Module):
