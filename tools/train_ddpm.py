@@ -69,10 +69,10 @@ def train(args):
         for im, labels in tqdm(train_loader):
             optimizer.zero_grad()
             im = im.float().to(device)
-            print("Tensor shape:", im.shape)  # Print the shape of the tensor
+            # print("Tensor shape:", im.shape)  # Print the shape of the tensor
             
             # Apply the transform
-            im = transform(im).to(device)
+            # im = transform(im).to(device)
             
             # Sample random noise
             noise = torch.randn_like(im).to(device)

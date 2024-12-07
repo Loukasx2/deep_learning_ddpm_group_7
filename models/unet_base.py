@@ -42,7 +42,7 @@ class DownBlock(nn.Module):
                 nn.Sequential(
                     nn.GroupNorm(8, in_channels if i == 0 else out_channels),
                     nn.SiLU(),
-                    nn.Dropout(p=0.3),
+                    nn.Dropout(p=0.1),
                     nn.Conv2d(in_channels if i == 0 else out_channels, out_channels,
                               kernel_size=3, stride=1, padding=1),
                 )
@@ -61,7 +61,7 @@ class DownBlock(nn.Module):
                 nn.Sequential(
                     nn.GroupNorm(8, out_channels),
                     nn.SiLU(),
-                    nn.Dropout(p=0.3),
+                    nn.Dropout(p=0.1),
                     nn.Conv2d(out_channels, out_channels,
                               kernel_size=3, stride=1, padding=1),
                 )
@@ -99,16 +99,16 @@ class DownBlock(nn.Module):
             
             # Attention block of Unet
             batch_size, channels, h, w = out.shape
-            in_attn = out.reshape(batch_size, channels, h * w)
-            in_attn = self.attention_norms[i](in_attn)
-            in_attn = in_attn.transpose(1, 2)
-            out_attn, _ = self.attentions[i](in_attn, in_attn, in_attn)
-            out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
-            out = out + out_attn
+            if h == 16 and w == 16:
+                in_attn = out.reshape(batch_size, channels, h * w)
+                in_attn = self.attention_norms[i](in_attn)
+                in_attn = in_attn.transpose(1, 2)
+                out_attn, _ = self.attentions[i](in_attn, in_attn, in_attn)
+                out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
+                out = out + out_attn
             
         out = self.down_sample_conv(out)
         return out
-
 
 class MidBlock(nn.Module):
     r"""
@@ -126,7 +126,7 @@ class MidBlock(nn.Module):
                 nn.Sequential(
                     nn.GroupNorm(8, in_channels if i == 0 else out_channels),
                     nn.SiLU(),
-                    nn.Dropout(p=0.3),
+                    nn.Dropout(p=0.1),
                     nn.Conv2d(in_channels if i == 0 else out_channels, out_channels, kernel_size=3, stride=1,
                               padding=1),
                 )
@@ -145,7 +145,7 @@ class MidBlock(nn.Module):
                 nn.Sequential(
                     nn.GroupNorm(8, out_channels),
                     nn.SiLU(),
-                    nn.Dropout(p=0.3),
+                    nn.Dropout(p=0.1),
                     nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
                 )
                 for _ in range(num_layers+1)
@@ -182,12 +182,13 @@ class MidBlock(nn.Module):
             
             # Attention Block
             batch_size, channels, h, w = out.shape
-            in_attn = out.reshape(batch_size, channels, h * w)
-            in_attn = self.attention_norms[i](in_attn)
-            in_attn = in_attn.transpose(1, 2)
-            out_attn, _ = self.attentions[i](in_attn, in_attn, in_attn)
-            out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
-            out = out + out_attn
+            if h == 16 and w == 16:
+                in_attn = out.reshape(batch_size, channels, h * w)
+                in_attn = self.attention_norms[i](in_attn)
+                in_attn = in_attn.transpose(1, 2)
+                out_attn, _ = self.attentions[i](in_attn, in_attn, in_attn)
+                out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
+                out = out + out_attn
             
             # Resnet Block
             resnet_input = out
@@ -217,7 +218,7 @@ class UpBlock(nn.Module):
                 nn.Sequential(
                     nn.GroupNorm(8, in_channels if i == 0 else out_channels),
                     nn.SiLU(),
-                    nn.Dropout(p=0.3),
+                    nn.Dropout(p=0.1),
                     nn.Conv2d(in_channels if i == 0 else out_channels, out_channels, kernel_size=3, stride=1,
                               padding=1),
                 )
@@ -236,7 +237,7 @@ class UpBlock(nn.Module):
                 nn.Sequential(
                     nn.GroupNorm(8, out_channels),
                     nn.SiLU(),
-                    nn.Dropout(p=0.3),
+                    nn.Dropout(p=0.1),
                     nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
                 )
                 for _ in range(num_layers)
@@ -279,13 +280,15 @@ class UpBlock(nn.Module):
             out = out + self.residual_input_conv[i](resnet_input)
             
             batch_size, channels, h, w = out.shape
-            in_attn = out.reshape(batch_size, channels, h * w)
-            in_attn = self.attention_norms[i](in_attn)
-            in_attn = in_attn.transpose(1, 2)
-            out_attn, _ = self.attentions[i](in_attn, in_attn, in_attn)
-            out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
-            out = out + out_attn
-
+            if h == 16 and w == 16:
+                in_attn = out.reshape(batch_size, channels, h * w)
+                in_attn = self.attention_norms[i](in_attn)
+                in_attn = in_attn.transpose(1, 2)
+                out_attn, _ = self.attentions[i](in_attn, in_attn, in_attn)
+                out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
+                out = out + out_attn
+        
+        out = self.up_sample_conv(out)
         return out
 
 
