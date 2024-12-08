@@ -1,0 +1,28 @@
+dataset_params:
+  im_path: 'data/train/images'
+
+diffusion_params:
+  num_timesteps : 1000
+  beta_start : 0.0001
+  beta_end : 0.02
+
+model_params:
+  im_channels : 3
+  im_size : 32
+  down_channels : [32, 64, 128, 256]      # 4 downsampling layers, stop at 2x2
+  mid_channels : [256, 256, 128, 128]     # Add more mid-level layers
+  down_sample : [True, True, True]  # Only 4 downsampling steps
+  time_emb_dim : 128
+  num_down_layers : 4                     # Matches the down_sample list
+  num_mid_layers : 12                     # Add depth here instead
+  num_up_layers : 4
+  num_heads : 4
+
+train_params:
+  task_name: 'cifar_more_mid_layers'
+  batch_size: 128
+  num_epochs: 200
+  num_samples : 10
+  num_grid_rows : 10
+  lr: 0.0002
+  ckpt_name: 'cifar_1.pth'

@@ -163,3 +163,7 @@ cython_debug/
 data/
 default_fid/
 output/
+cifar_attn/
+*cache/
+*venv*/
+*sample*.png
