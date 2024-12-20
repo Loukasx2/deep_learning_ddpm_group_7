@@ -14,80 +14,83 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def train(args):
-    # Read the config file #
+    """
+    Train the U-Net model
+    """
+    # Load and parse the configuration file
     with open(args.config_path, 'r') as file:
         try:
             config = yaml.safe_load(file)
         except yaml.YAMLError as exc:
             print(exc)
     print(config)
-    ########################
+   
     
-    diffusion_config = config['diffusion_params']
-    dataset_config = config['dataset_params']
-    model_config = config['model_params']
-    train_config = config['train_params']
+    diffusion_params = config['diffusion_params']
+    dataset_params = config['dataset_params']
+    model_params = config['model_params']
+    train_params = config['train_params']
     
-    # Create the noise scheduler
-    scheduler = LinearNoiseScheduler(num_timesteps=diffusion_config['num_timesteps'],
-                                     beta_start=diffusion_config['beta_start'],
-                                     beta_end=diffusion_config['beta_end'])
+    # Initialize the noise scheduler
+    scheduler = LinearNoiseScheduler(num_timesteps=diffusion_params['num_timesteps'],
+                                     beta_start=diffusion_params['beta_start'],
+                                     beta_end=diffusion_params['beta_end'])
     
-    # Create the dataset
-    mnist = MnistDataset('train', im_path=dataset_config['im_path'])
-    mnist_loader = DataLoader(mnist, batch_size=train_config['batch_size'], shuffle=True, num_workers=4)
+    # Load the dataset
+    mnist = MnistDataset('train', im_path=dataset_params['im_path'])
+    mnist_loader = DataLoader(mnist, batch_size=train_params['batch_size'], shuffle=True, num_workers=4)
     
     # Instantiate the model
-    model = Unet(model_config).to(device)
+    model = Unet(model_params).to(device)
     model.train()
     
     # Create output directories
-    if not os.path.exists(train_config['task_name']):
-        os.mkdir(train_config['task_name'])
+    if not os.path.exists(train_params['task_name']):
+        os.mkdir(train_params['task_name'])
     
-    # Load checkpoint if found
-    if os.path.exists(os.path.join(train_config['task_name'],train_config['ckpt_name'])):
-        print('Loading checkpoint as found one')
-        model.load_state_dict(torch.load(os.path.join(train_config['task_name'],
-                                                      train_config['ckpt_name']), map_location=device))
+    # Load checkpoint ifit exists
+    if os.path.exists(os.path.join(train_params['task_name'],train_params['ckpt_name'])):
+        print('Loading existing checkpoint...')
+        model.load_state_dict(torch.load(os.path.join(train_params['task_name'],
+                                                      train_params['ckpt_name']), map_location=device))
     # Specify training parameters
-    num_epochs = train_config['num_epochs']
-    optimizer = Adam(model.parameters(), lr=train_config['lr'])
+    num_epochs = train_params['num_epochs']
+    optimizer = Adam(model.parameters(), lr=train_params['lr'])
     criterion = torch.nn.MSELoss()
     
-    # Run training
-    for epoch_idx in range(num_epochs):
+    # Training loop
+    for epoch in range(num_epochs):
         losses = []
-        for im in tqdm(mnist_loader):
+        for img in tqdm(mnist_loader):
             optimizer.zero_grad()
-            im = im.float().to(device)
+            img = img.float().to(device)
             
             # Sample random noise
-            noise = torch.randn_like(im).to(device)
+            noise = torch.randn_like(img).to(device)
             
             # Sample timestep
-            t = torch.randint(0, diffusion_config['num_timesteps'], (im.shape[0],)).to(device)
+            t = torch.randint(0, diffusion_params['num_timesteps'], (img.shape[0],)).to(device)
             
             # Add noise to images according to timestep
-            noisy_im = scheduler.add_noise(im, noise, t)
-            noise_pred = model(noisy_im, t)
+            noisy_img = scheduler.add_noise(img, noise, t)
+            noise_pred = model(noisy_img, t)
 
             loss = criterion(noise_pred, noise)
             losses.append(loss.item())
             loss.backward()
             optimizer.step()
         print('Finished epoch:{} | Loss : {:.4f}'.format(
-            epoch_idx + 1,
+            epoch + 1,
             np.mean(losses),
         ))
-        torch.save(model.state_dict(), os.path.join(train_config['task_name'],
-                                                    train_config['ckpt_name']))
+        torch.save(model.state_dict(), os.path.join(train_params['task_name'],
+                                                    train_params['ckpt_name']))
     
     print('Done Training ...')
     
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Arguments for ddpm training')
+    parser = argparse.ArgumentParser(description='Arguments for DDPM model training')
     parser.add_argument('--config', dest='config_path',
                         default='config/default.yaml', type=str)
     args = parser.parse_args()
