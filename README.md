@@ -1,8 +1,8 @@
 # deep_learning_ddpm_group_7
 The project is to re-implement the Denoising Diffusion Probabilistic Model (DDPM) in PyTorch and reproduce their results at least on MNIST and ideally on CIFAR-10.
 
-* ```python -m tools.train_ddpm``` for training ddpm
-* ```python -m tools.sample_ddpm``` for generating images
+* ```python -m tools.train``` for training ddpm
+* ```python -m tools.sample``` for generating images
 
 ## Configuration
 * ```config/default.yaml``` - Allows you to play with different components of ddpm  
