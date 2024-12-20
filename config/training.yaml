@@ -13,16 +13,17 @@ model_params:
   mid_channels : [256, 256, 128, 128]     # Add more mid-level layers
   down_sample : [True, True, True]  # Only 4 downsampling steps
   time_emb_dim : 128
-  num_down_layers : 4                     # Matches the down_sample list
+  num_down_layers : 4                   # Matches the down_sample list
   num_mid_layers : 12                     # Add depth here instead
   num_up_layers : 4
   num_heads : 4
 
 train_params:
   task_name: 'cifar_more_mid_layers'
+  folder_name: 'cifar_fixed_model_12_layers'
   batch_size: 128
-  num_epochs: 200
-  num_samples : 10
+  num_epochs: 1000
+  num_samples : 1000
   num_grid_rows : 10
   lr: 0.0002
-  ckpt_name: 'cifar_1.pth'
+  ckpt_name: 'cifar_fixed_model_12_layers.pth'

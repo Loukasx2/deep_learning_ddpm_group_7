@@ -6,7 +6,7 @@
 #BSUB -gpu "num=1:mode=exclusive_process"
 
 ### ------------- specify job name ---------------- 
-#BSUB -J testjob_ddpm_cifar2
+#BSUB -J sample_20_layers
 
 ### ------------- specify number of cores ---------------- 
 #BSUB -n 4 
@@ -20,6 +20,8 @@
 #BSUB -e output/OUTPUT_FILE%J.err
 
 source /dtu/blackhole/1e/203934/ddpm/deep_learning_ddpm_group_7/.venv_a100/bin/activate
-python -m tools.train_ddpm --config config/train_a100.yaml
-python -m tools.sample_ddpm --config config/train_a100.yaml
-# python -m utils.fid_score
+# python -m tools.train_ddpm --config config/train_a100.yaml
+cd /dtu/blackhole/1e/203934/ddpm/deep_learning_ddpm_group_7/
+# python -m tools.train_ddpm --config config/training.yaml
+# python -m tools.sample_ddpm --config config/train_a100.yaml
+bash /dtu/blackhole/1e/203934/ddpm/deep_learning_ddpm_group_7/tools/sampling.sh

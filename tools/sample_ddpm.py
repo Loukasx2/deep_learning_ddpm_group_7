@@ -37,7 +37,7 @@ def sample(model, scheduler, train_config, model_config, diffusion_config):
                       model_config['im_size'])).to(device)
 
     # Create output directory for saving images
-    output_dir = os.path.join(train_config['task_name'], 'samples')
+    output_dir = os.path.join(train_config['task_name'], train_config['folder_name'])
     os.makedirs(output_dir, exist_ok=True)
 
     # Get the latest index to continue sampling
