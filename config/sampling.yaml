@@ -9,20 +9,21 @@ diffusion_params:
 model_params:
   im_channels : 3
   im_size : 32
-  down_channels : [32, 64, 128, 256]
-  mid_channels : [256, 256, 128]
-  down_sample : [True, True, True]
+  down_channels : [32, 64, 128, 256]      # 4 downsampling layers, stop at 2x2
+  mid_channels : [256, 256, 128, 128]     # Add more mid-level layers
+  down_sample : [True, True, True]  # Only 4 downsampling steps
   time_emb_dim : 128
-  num_down_layers : 2
-  num_mid_layers : 2
-  num_up_layers : 2
+  num_down_layers : 12                   # Matches the down_sample list
+  num_mid_layers : 12                     # Add depth here instead
+  num_up_layers : 12
   num_heads : 4
 
 train_params:
-  task_name: 'cifar_attn'
+  task_name: 'cifar_more_mid_layers'
+  folder_name: 'cifar_fixed_model_NEW_TRAINING'
   batch_size: 128
-  num_epochs: 200
+  num_epochs: 2000
   num_samples : 1000
   num_grid_rows : 10
   lr: 0.0002
-  ckpt_name: 'cifar_3.pth'
+  ckpt_name: 'cifar_fixed_model.pth'
